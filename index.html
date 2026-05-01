@@ -3996,12 +3996,54 @@ aasync function carregarProdutos() {
       <hr>
     `;
 
-    container.appendChild(item);
-  });
-}
+  <div id="catalogo"></div>
 
-carregarProdutos();
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+
+  const supabaseUrl = "https://vrikvgxlasduvqbpnkmb.supabase.co"
+  const supabaseKey = "SUA_CHAVE_ANON_AQUI" // cole aqui a anon key
+  const supabase = createClient(supabaseUrl, supabaseKey)
+
+  async function carregarProdutos() {
+    const { data, error } = await supabase
+      .from("produtos")
+      .select("*")
+
+    if (error) {
+      console.error("Erro ao carregar produtos:", error)
+      return
+    }
+
+    const container = document.getElementById("catalogo")
+    container.innerHTML = ""
+
+    data.forEach(produto => {
+      const card = document.createElement("div")
+      card.className = "produto-card"
+
+      let mediaHtml = ""
+      if (produto.imagem_url) {
+        if (produto.imagem_url.endsWith(".mp4") || produto.imagem_url.endsWith(".webm") || produto.imagem_url.endsWith(".mov")) {
+          mediaHtml = `<video src="${produto.imagem_url}" autoplay loop muted playsinline style="max-width:300px"></video>`
+        } else {
+          mediaHtml = `<img src="${produto.imagem_url}" alt="Imagem do produto" style="max-width:200px">`
+        }
+      }
+
+      card.innerHTML = `
+        <h3>${produto.nome}</h3>
+        <p>${produto.descricao}</p>
+        <p>Preço: R$ ${produto.preco}</p>
+        ${mediaHtml}
+      `
+      container.appendChild(card)
+    })
+  }
+
+  carregarProdutos()
 </script>
 
 </body>
+
 </html>
