@@ -13,33 +13,9 @@
 
 <!-- Injetar variáveis de ambiente Supabase -->
 <script>
-  // Carregadas do servidor/Vercel Environment Variables
-  window.SUPABASE_URL = "{{ SUPABASE_URL }}" || "";
-  window.SUPABASE_KEY = "{{ SUPABASE_ANON_KEY }}" || "";
-  
-  // Para desenvolvimento local, ler do fetch ou usar valores padrão
-  if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('{{')) {
-    // Tentar carregar do .env.local no mesmo diretório
-    fetch('./.env.local')
-      .then(r => r.text())
-      .then(text => {
-        const lines = text.split('\n');
-        lines.forEach(line => {
-          const [key, val] = line.split('=');
-          if (key && val) {
-            if (key.trim() === 'SUPABASE_URL') window.SUPABASE_URL = val.trim();
-            if (key.trim() === 'SUPABASE_ANON_KEY') window.SUPABASE_KEY = val.trim();
-          }
-        });
-        console.log('✅ Variáveis carregadas do .env.local');
-      })
-      .catch(() => {
-        // Fallback para desenvolvimento local
-        console.warn('⚠️ Usando credenciais padrão para desenvolvimento');
-        window.SUPABASE_URL = "https://vrikvgxlasduvqbpnkmb.supabase.co";
-        window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaWt2Z3hsYXNkdXZxYnBua21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTI4MDMsImV4cCI6MjA5MjkyODgwM30.zDcYWZ9G4IyCqwnGsn9OnWJYa9KSh8MlPM4HYBp3Dig";
-      });
-  }
+  // Definir credenciais diretamente para desenvolvimento local
+  window.SUPABASE_URL = "https://vrikvgxlasduvqbpnkmb.supabase.co";
+  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaWt2Z3hsYXNkdXZxYnBua21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTI4MDMsImV4cCI6MjA5MjkyODgwM30.zDcYWZ9G4IyCqwnGsn9OnWJYa9KSh8MlPM4HYBp3Dig";
 </script>
 
 <style>
