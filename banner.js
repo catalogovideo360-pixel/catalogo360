@@ -2,36 +2,45 @@
 // CONFIGURAÇÃO SUPABASE - PiraFashion
 // ═════════════════════════════════════════════════════════════
 
-const SUPABASE_URL = window.SUPABASE_URL || "";
-const SUPABASE_KEY = window.SUPABASE_KEY || "";
+// Função para inicializar Supabase quando credenciais estiverem disponíveis
+function initializeSupabase() {
+  const SUPABASE_URL = window.SUPABASE_URL || "";
+  const SUPABASE_KEY = window.SUPABASE_KEY || "";
 
-// Verificar se credenciais estão carregadas
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.warn("⚠️ Credenciais Supabase não configuradas. Verifique window.SUPABASE_URL e window.SUPABASE_KEY");
-}
-
-// Inicializar cliente Supabase com tratamento de erro
-let supabaseClient = null;
-try {
-  if (window.supabase && SUPABASE_URL && SUPABASE_KEY) {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // Verificar se credenciais estão carregadas
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.warn("⚠️ Credenciais Supabase não configuradas. Aguardando...");
+    // Tentar novamente em 100ms
+    setTimeout(initializeSupabase, 100);
+    return;
   }
-} catch (err) {
-  console.error("❌ Erro ao inicializar Supabase:", err);
+
+  // Inicializar cliente Supabase com tratamento de erro
+  try {
+    if (window.supabase && SUPABASE_URL && SUPABASE_KEY) {
+      window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      console.log("✅ Supabase inicializado com sucesso");
+    }
+  } catch (err) {
+    console.error("❌ Erro ao inicializar Supabase:", err);
+  }
 }
+
+// Iniciar inicialização
+initializeSupabase();
 
 // ═════════════════════════════════════════════════════════════
 // UPLOAD DE ARQUIVOS (Vídeo e Imagens)
 // ═════════════════════════════════════════════════════════════
 
 async function uploadArquivo(bucket, path, file) {
-  if (!supabaseClient) {
+  if (!window.supabaseClient) {
     console.error("❌ Cliente Supabase não inicializado");
     return null;
   }
 
   try {
-    const { data, error } = await supabaseClient.storage
+    const { data, error } = await window.supabaseClient.storage
       .from(bucket)
       .upload(path, file, { upsert: true });
 
@@ -40,7 +49,7 @@ async function uploadArquivo(bucket, path, file) {
       return null;
     }
 
-    const { data: publicData } = supabaseClient.storage
+    const { data: publicData } = window.supabaseClient.storage
       .from(bucket)
       .getPublicUrl(path);
 
@@ -56,7 +65,7 @@ async function uploadArquivo(bucket, path, file) {
 // ═════════════════════════════════════════════════════════════
 
 async function salvarProduto() {
-  if (!supabaseClient) {
+  if (!window.supabaseClient) {
     alert("❌ Sistema não inicializado. Verifique as credenciais.");
     return;
   }
@@ -111,7 +120,7 @@ async function salvarProduto() {
     }
 
     // ── Inserir no banco de dados Supabase ──
-    const { error } = await supabaseClient
+    const { error } = await window.supabaseClient
       .from("produtos")
       .insert([{
         nome: nome,
@@ -152,13 +161,13 @@ async function salvarProduto() {
 // ═════════════════════════════════════════════════════════════
 
 async function carregarProdutos() {
-  if (!supabaseClient) {
+  if (!window.supabaseClient) {
     console.warn("⚠️ Cliente Supabase não disponível");
     return [];
   }
 
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await window.supabaseClient
       .from("produtos")
       .select("*")
       .eq("tenant_id", "pirafashion")
