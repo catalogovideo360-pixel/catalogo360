@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PiraFashion Admin">
+  <meta name="theme-color" content="#0a0a0a">
   <title>Painel Admin - PiraFashion</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -80,9 +84,25 @@
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
-// Configurar credenciais Supabase no window object
-window.SUPABASE_URL = "https://vrikvgxlasduvqbpnkmb.supabase.co";
-window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaWt2Z3hsYXNkdXZxYnBua21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTI4MDMsImV4cCI6MjA5MjkyODgwM30.zDcYWZ9G4IyCqwnGsn9OnWJYa9KSh8MlPM4HYBp3Dig";
+  // Carregadas do servidor/Vercel Environment Variables
+  window.SUPABASE_URL = "{{ SUPABASE_URL }}" || "";
+  window.SUPABASE_KEY = "{{ SUPABASE_ANON_KEY }}" || "";
+  
+  // Para desenvolvimento local, ler do fetch
+  if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('{{')) {
+    fetch('/.env.local')
+      .then(r => r.text())
+      .then(text => {
+        const lines = text.split('\n');
+        lines.forEach(line => {
+          const [key, val] = line.split('=');
+          if (key === 'SUPABASE_URL') window.SUPABASE_URL = val;
+          if (key === 'SUPABASE_ANON_KEY') window.SUPABASE_KEY = val;
+        });
+        console.log('✅ Variáveis carregadas do .env.local');
+      })
+      .catch(() => console.warn('⚠️ .env.local não encontrado'));
+  }
 </script>
 <!-- Scripts do App -->
 <script src="banner.js"></script>
