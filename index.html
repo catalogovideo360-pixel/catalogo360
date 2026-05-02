@@ -19,7 +19,8 @@
   
   // Para desenvolvimento local, ler do fetch
   if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('{{')) {
-    fetch('/.env.local')
+    // Tentar carregar do .env.local no mesmo diretório
+    fetch('./.env.local')
       .then(r => r.text())
       .then(text => {
         const lines = text.split('\n');
