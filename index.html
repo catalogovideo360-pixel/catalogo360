@@ -3953,95 +3953,118 @@ function imprimirRel(id){
   setTimeout(() => window.print(), 600);
 }
 
+<div id="catalogo"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-const supabaseClient = supabase.createClient(
-  "https://vrikvgxlasduvqbpnkmb.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaWt2Z3hsYXNkdXZxYnBua21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTI4MDMsImV4cCI6MjA5MjkyODgwM30.zDcYWZ9G4IyCqwnGsn9OnWJYa9KSh8MlPM4HYBp3Dig"
-);
+const SUPABASE_URL = "https://vrikvgxlasduvqbpnkmb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaWt2Z3hsYXNkdXZxYnBua21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTI4MDMsImV4cCI6MjA5MjkyODgwM30.zDcYWZ9G4IyCqwnGsn9OnWJYa9KSh8MlPM4HYBp3Dig";
 
-aasync function carregarProdutos() {
-  console.log("🔥 INICIOU");
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const { data, error } = await supabaseClient
-    .from("produtos")
-    .select("*");
+function normalizeFotos(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [value];
+    } catch (err) {
+      return [value];
+    }
+  }
+  return [];
+}
 
-  console.log("📦 DATA:", data);
-  console.log("❌ ERROR:", error);
+function getMediaHtml(produto) {
+  const fotos = normalizeFotos(produto.fotos);
+  const videoUrl = produto.video_url;
+  let html = '';
 
-  const container = document.getElementById("lista-produtos");
+  if (videoUrl) {
+    html += `<video src="${videoUrl}" controls style="max-width:100%;margin-bottom:12px;display:block;" playsinline></video>`;
+  }
 
-  if (!container) {
-    console.error("🚨 NÃO EXISTE lista-produtos");
+  fotos.forEach(url => {
+    if (!url) return;
+    html += `<img src="${url}" alt="Imagem do produto" style="max-width:100%;margin-bottom:12px;display:block;">`;
+  });
+
+  if (!html) {
+    html = '<div style="color:#666;font-size:14px;">Sem mídia disponível.</div>';
+  }
+
+  return html;
+}
+
+function renderProdutos(produtos) {
+  const container = document.getElementById('catalogo');
+  if (!container) return;
+
+  if (!produtos || produtos.length === 0) {
+    container.innerHTML = '<h2 style="color:#333; text-align:center; padding:40px 0;">Nenhum produto encontrado.</h2>';
     return;
   }
 
-  if (!data || data.length === 0) {
-    container.innerHTML = "<h2>SEM PRODUTOS</h2>";
-    return;
-  }
-
-  container.innerHTML = "";
-
-  data.forEach(produto => {
-    const item = document.createElement("div");
-
-    item.innerHTML = `
-      <h3>${produto.nome}</h3>
-      <img src="${produto.imagem_url}" width="200">
-      <p>${produto.descricao}</p>
-      <strong>R$ ${produto.preco}</strong>
-      <hr>
+  container.innerHTML = produtos.map(produto => {
+    return `
+      <div class="produto-card" style="border:1px solid #e0e0e0; border-radius:12px; padding:20px; margin-bottom:20px; background:#fff;">
+        <h3 style="margin-bottom:10px;">${produto.nome || 'Produto sem nome'}</h3>
+        <p style="margin-bottom:12px; color:#555;">${produto.descricao || ''}</p>
+        <strong style="display:block; margin-bottom:16px;">R$ ${produto.preco != null ? produto.preco : '0,00'}</strong>
+        ${getMediaHtml(produto)}
+      </div>
     `;
+  }).join('');
+}
 
-  <div id="catalogo"></div>
-
-<script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-
-  const supabaseUrl = "https://vrikvgxlasduvqbpnkmb.supabase.co"
-  const supabaseKey = "SUA_CHAVE_ANON_AQUI" // cole aqui a anon key
-  const supabase = createClient(supabaseUrl, supabaseKey)
-
-  async function carregarProdutos() {
-    const { data, error } = await supabase
-      .from("produtos")
-      .select("*")
+async function carregarProdutos() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('produtos')
+      .select('*')
+      .eq('tenant_id', 'pirafashion')
+      .order('id', { ascending: false });
 
     if (error) {
-      console.error("Erro ao carregar produtos:", error)
-      return
+      console.error('Erro ao carregar produtos:', error);
+      renderProdutos([]);
+      return;
     }
 
-    const container = document.getElementById("catalogo")
-    container.innerHTML = ""
-
-    data.forEach(produto => {
-      const card = document.createElement("div")
-      card.className = "produto-card"
-
-      let mediaHtml = ""
-      if (produto.imagem_url) {
-        if (produto.imagem_url.endsWith(".mp4") || produto.imagem_url.endsWith(".webm") || produto.imagem_url.endsWith(".mov")) {
-          mediaHtml = `<video src="${produto.imagem_url}" autoplay loop muted playsinline style="max-width:300px"></video>`
-        } else {
-          mediaHtml = `<img src="${produto.imagem_url}" alt="Imagem do produto" style="max-width:200px">`
-        }
-      }
-
-      card.innerHTML = `
-        <h3>${produto.nome}</h3>
-        <p>${produto.descricao}</p>
-        <p>Preço: R$ ${produto.preco}</p>
-        ${mediaHtml}
-      `
-      container.appendChild(card)
-    })
+    renderProdutos(data || []);
+  } catch (err) {
+    console.error('Erro ao carregar produtos:', err);
+    renderProdutos([]);
   }
+}
 
-  carregarProdutos()
+function setupRealtime() {
+  const subscription = supabaseClient
+    .from('produtos')
+    .on('INSERT', payload => {
+      console.log('Realtime INSERT', payload);
+      carregarProdutos();
+    })
+    .on('UPDATE', payload => {
+      console.log('Realtime UPDATE', payload);
+      carregarProdutos();
+    })
+    .on('DELETE', payload => {
+      console.log('Realtime DELETE', payload);
+      carregarProdutos();
+    })
+    .subscribe();
+
+  return subscription;
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  await carregarProdutos();
+  setupRealtime();
+  setInterval(carregarProdutos, 20000);
+});
 </script>
 
 </body>
