@@ -4161,7 +4161,7 @@ async function carregarProdutos() {
       .from('produtos')
       .select('*')
       .eq('tenant_id', 'pirafashion')
-      .order('id', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Erro ao carregar produtos:', error);
@@ -4176,34 +4176,33 @@ async function carregarProdutos() {
   }
 }
 
-function setupRealtime() {
-  console.log('🔄 Configurando realtime subscription...');
+async function setupRealtime() {
+  console.log('🔄 Configurando realtime channel...');
 
   if (!supabaseClient) {
     console.error('❌ supabaseClient não está disponível para realtime');
     return null;
   }
 
-  const subscription = supabaseClient
-    .from('produtos')
-    .on('INSERT', payload => {
-      console.log('📥 Realtime INSERT detectado:', payload);
-      carregarProdutos();
-    })
-    .on('UPDATE', payload => {
-      console.log('📝 Realtime UPDATE detectado:', payload);
-      carregarProdutos();
-    })
-    .on('DELETE', payload => {
-      console.log('🗑️ Realtime DELETE detectado:', payload);
-      carregarProdutos();
-    })
-    .subscribe((status) => {
-      console.log('📡 Status da subscription:', status);
-    });
+  try {
+    const channel = supabaseClient.channel('public:produtos')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'produtos' }, payload => {
+        console.log('📡 Realtime evento recebido:', payload);
+        carregarProdutos();
+      });
 
-  console.log('✅ Realtime subscription configurado');
-  return subscription;
+    const { error } = await channel.subscribe();
+    if (error) {
+      console.error('❌ Erro ao assinar o canal realtime:', error);
+      return null;
+    }
+
+    console.log('✅ Realtime channel configurado');
+    return channel;
+  } catch (err) {
+    console.error('❌ Falha ao configurar realtime channel:', err);
+    return null;
+  }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
