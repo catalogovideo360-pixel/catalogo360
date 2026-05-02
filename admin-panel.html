@@ -84,14 +84,25 @@
 
 <!-- Configuração de credenciais Supabase -->
 <script>
-  // Definir credenciais diretamente para desenvolvimento local
-  window.SUPABASE_URL = "https://vrikvgxlasduvqbpnkmb.supabase.co";
-  window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaWt2Z3hsYXNkdXZxYnBua21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTI4MDMsImV4cCI6MjA5MjkyODgwM30.zDcYWZ9G4IyCqwnGsn9OnWJYa9KSh8MlPM4HYBp3Dig";
-  
-  console.log('✅ Credenciais Supabase definidas:', {
-    url: window.SUPABASE_URL,
-    key: window.SUPABASE_KEY ? '***' + window.SUPABASE_KEY.slice(-10) : 'undefined'
-  });
+  async function loadSupabaseEnv() {
+    try {
+      const res = await fetch('/api/env');
+      const config = await res.json();
+      window.SUPABASE_URL = config.SUPABASE_URL;
+      window.SUPABASE_KEY = config.SUPABASE_KEY;
+
+      if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+        throw new Error('Supabase env não encontrada');
+      }
+
+      console.log('✅ Credenciais Supabase carregadas do servidor');
+    } catch (err) {
+      console.error('❌ Falha ao carregar credenciais Supabase:', err);
+      alert('Falha ao carregar credenciais Supabase. Verifique a configuração no Vercel.');
+    }
+  }
+
+  loadSupabaseEnv();
 </script>
 
 <!-- Supabase SDK -->

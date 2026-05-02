@@ -4086,19 +4086,34 @@ function imprimirRel(id){
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-// Configurar credenciais Supabase no window object
-window.SUPABASE_URL = "https://vrikvgxlasduvqbpnkmb.supabase.co";
-window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaWt2Z3hsYXNkdXZxYnBua21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTI4MDMsImV4cCI6MjA5MjkyODgwM30.zDcYWZ9G4IyCqwnGsn9OnWJYa9KSh8MlPM4HYBp3Dig";
+async function loadSupabaseEnv() {
+  try {
+    const res = await fetch('/api/env');
+    const config = await res.json();
+    window.SUPABASE_URL = config.SUPABASE_URL;
+    window.SUPABASE_KEY = config.SUPABASE_KEY;
+
+    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+      throw new Error('Supabase env não encontrada');
+    }
+
+    window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    console.log('✅ Supabase env carregado com sucesso');
+
+    await carregarProdutos();
+    await setupRealtime();
+    setInterval(carregarProdutos, 20000);
+  } catch (err) {
+    console.error('❌ Falha ao carregar env do Supabase:', err);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', loadSupabaseEnv);
 </script>
 
 <script src="banner.js"></script>
 
 <script>
-const SUPABASE_URL = window.SUPABASE_URL;
-const SUPABASE_KEY = window.SUPABASE_KEY;
-
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 function normalizeFotos(value) {
   if (!value) return [];
   if (Array.isArray(value)) return value;
@@ -4157,7 +4172,13 @@ function renderProdutos(produtos) {
 
 async function carregarProdutos() {
   try {
-    const { data, error } = await supabaseClient
+    if (!window.supabaseClient) {
+      console.error('❌ supabaseClient não inicializado ao carregar produtos');
+      renderProdutos([]);
+      return;
+    }
+
+    const { data, error } = await window.supabaseClient
       .from('produtos')
       .select('*')
       .eq('tenant_id', 'pirafashion')
@@ -4179,13 +4200,13 @@ async function carregarProdutos() {
 async function setupRealtime() {
   console.log('🔄 Configurando realtime channel...');
 
-  if (!supabaseClient) {
+  if (!window.supabaseClient) {
     console.error('❌ supabaseClient não está disponível para realtime');
     return null;
   }
 
   try {
-    const channel = supabaseClient.channel('public:produtos')
+    const channel = window.supabaseClient.channel('public:produtos')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'produtos' }, payload => {
         console.log('📡 Realtime evento recebido:', payload);
         carregarProdutos();
@@ -4204,12 +4225,6 @@ async function setupRealtime() {
     return null;
   }
 }
-
-window.addEventListener('DOMContentLoaded', async () => {
-  await carregarProdutos();
-  setupRealtime();
-  setInterval(carregarProdutos, 20000);
-});
 </script>
 
 </body>
