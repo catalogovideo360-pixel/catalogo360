@@ -242,4 +242,40 @@ window.carregarProdutos = carregarProdutos;
 window.otimizarVideos = otimizarVideos;
 window.inicializarLazyLoading = inicializarLazyLoading;
 
+// ═════════════════════════════════════════════════════════════
+// FUNÇÃO DE DEBUG/TESTE
+// ═════════════════════════════════════════════════════════════
+
+async function testarConexao() {
+  console.log('🔍 Testando conexão com Supabase...');
+
+  if (!window.supabaseClient) {
+    alert('❌ Cliente Supabase não inicializado');
+    console.error('❌ Cliente Supabase não inicializado');
+    return;
+  }
+
+  try {
+    // Testar conexão básica
+    const { data, error } = await window.supabaseClient.from('produtos').select('count').limit(1);
+
+    if (error) {
+      console.error('❌ Erro na conexão:', error);
+      alert('❌ Erro na conexão: ' + error.message);
+      return;
+    }
+
+    // Carregar produtos atuais
+    const produtos = await carregarProdutos();
+    console.log('📊 Produtos encontrados:', produtos.length);
+    alert(`✅ Conexão OK! ${produtos.length} produtos encontrados.`);
+
+  } catch (err) {
+    console.error('❌ Erro geral no teste:', err);
+    alert('❌ Erro no teste: ' + err.message);
+  }
+}
+
+window.testarConexao = testarConexao;
+
 console.log("✅ banner.js carregado com sucesso");

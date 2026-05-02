@@ -4177,22 +4177,32 @@ async function carregarProdutos() {
 }
 
 function setupRealtime() {
+  console.log('🔄 Configurando realtime subscription...');
+
+  if (!supabaseClient) {
+    console.error('❌ supabaseClient não está disponível para realtime');
+    return null;
+  }
+
   const subscription = supabaseClient
     .from('produtos')
     .on('INSERT', payload => {
-      console.log('Realtime INSERT', payload);
+      console.log('📥 Realtime INSERT detectado:', payload);
       carregarProdutos();
     })
     .on('UPDATE', payload => {
-      console.log('Realtime UPDATE', payload);
+      console.log('📝 Realtime UPDATE detectado:', payload);
       carregarProdutos();
     })
     .on('DELETE', payload => {
-      console.log('Realtime DELETE', payload);
+      console.log('🗑️ Realtime DELETE detectado:', payload);
       carregarProdutos();
     })
-    .subscribe();
+    .subscribe((status) => {
+      console.log('📡 Status da subscription:', status);
+    });
 
+  console.log('✅ Realtime subscription configurado');
   return subscription;
 }
 
