@@ -2,10 +2,37 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PiraFashion">
+<meta name="theme-color" content="#0a0a0a">
 <title>PiraFashion | Moda Feminina Premium – Piracicaba SP</title>
 <meta name="description" content="PiraFashion – Moda feminina exclusiva em Piracicaba. Vestidos, conjuntos, jeans e fitness com entrega rápida.">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Injetar variáveis de ambiente Supabase -->
+<script>
+  // Carregadas do servidor/Vercel Environment Variables
+  window.SUPABASE_URL = "{{ SUPABASE_URL }}" || "";
+  window.SUPABASE_KEY = "{{ SUPABASE_ANON_KEY }}" || "";
+  
+  // Para desenvolvimento local, ler do fetch
+  if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('{{')) {
+    fetch('/.env.local')
+      .then(r => r.text())
+      .then(text => {
+        const lines = text.split('\n');
+        lines.forEach(line => {
+          const [key, val] = line.split('=');
+          if (key === 'SUPABASE_URL') window.SUPABASE_URL = val;
+          if (key === 'SUPABASE_ANON_KEY') window.SUPABASE_KEY = val;
+        });
+        console.log('✅ Variáveis carregadas do .env.local');
+      })
+      .catch(() => console.warn('⚠️ .env.local não encontrado'));
+  }
+</script>
 
 <style>
 *,*::before,*::after {
